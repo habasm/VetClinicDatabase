@@ -22,7 +22,7 @@ CREATE TABLE owners
 );
 CREATE TABLE species
 (
-    id VARCHAR(255) primary key,
+    id SERIAL primary key,
     name text
 );
 
@@ -35,7 +35,7 @@ ALTER TABLE animals ADD COLUMN owner_id INTEGER REFERENCES owners(id);
 -- project four--
 CREATE TABLE vets
 (
-    id SERIAL  primary key not null,
+    id VARCHAR(255)  primary key not null,
     name text ,
     age  integer,
 	date_of_graduation date
