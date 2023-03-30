@@ -1,17 +1,33 @@
--- Creeate database
-CREATE DATABASE vet_clinic;
-
--- Create table
-CREATE TABLE animals (
-    id INT GENERATED ALWAYS AS IDENTITY,
-    name VARCHAR(100) NOT NULL,
-    date_of_birth DATE,
-    escape_attempts INT NOT NULL,
-    neutered BOOLEAN NOT NULL,
-    weight_kg DECIMAL,
-    PRIMARY KEY (id)
+/* Database schema to keep the structure of entire database. */
+--project one---
+CREATE TABLE animals
+(
+    id integer primary key NOT NULL,
+    name text ,
+    date_of_birth date,
+    escape_attempts integer,
+    neutered boolean,
+    weight_kg decimal
 );
 
--- Add 'species' column of type string to animals table
-ALTER TABLE animals ADD COLUMN species VARCHAR(100);
+-- project two--
+Alter table animals add column species text;
 
+---project three---
+CREATE TABLE owners
+(
+    id SERIAL  primary key,
+    full_name text ,
+    age  integer
+);
+CREATE TABLE species
+(
+    id SERIAL primary key,
+    name text
+);
+
+create sequence animal_id_seq;
+alter table animals alter column id set default nextval('animal_id_seq');
+ALTER TABLE animals drop column species;
+ALTER TABLE animals ADD COLUMN species_id INTEGER REFERENCES species(id);
+ALTER TABLE animals ADD COLUMN owner_id INTEGER REFERENCES owners(id);

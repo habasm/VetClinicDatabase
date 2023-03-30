@@ -1,111 +1,75 @@
 /*Queries that provide answers to the questions from all projects.*/
--- Animals whose name ends with "mon"
-SELECT * from animals WHERE name LIKE '%mon';
+-- project 1--
+select * from animals where  name Like '%mon';
+select name from animals where date_of_birth  between  '2016-01-01' and '2019-01-01';
+select name from animals where neutered=true and  escape_attempts <3
+select date_of_birth from animals where name in('Agumon', 'Pikachu')
+select name, escape_attempts from animals where weight_kg >10.5
+select * from animals where neutered=true
+select * from animals where name !='Gabumon';
+select * from animals where weight_kg >= 10.4 and weight_kg <=17.3;
 
--- Names of animals born between 2016 and 2019
-SELECT name from animals WHERE date_of_birth BETWEEN '2016-01-01' AND '2019-12-31';
-
--- Names of animals that are neutered and have less than 3 escape attempts
-SELECT name from animals WHERE neutered = true AND escape_attempts < 3;
-
--- Date of birth of animals named either "Agumon" or "Pikachu"
-SELECT date_of_birth from animals WHERE name = 'Agumon' OR name = 'Pikachu';
-
--- Names and escape attempts of animals that weigh more than 10.5kg
-SELECT name, escape_attempts from animals WHERE weight_kg > 10.5;
-
--- Animals that are neutered
-SELECT * from animals WHERE neutered = true;
-
--- Animals not named Gabumon
-SELECT * from animals WHERE name != 'Gabumon';
-
--- Animals that weigh 10.4 kg to 17.3 kg
-SELECT * from animals WHERE weight_kg BETWEEN 10.4 AND 17.3;
-
-
--- Update the species column to 'unspecified' inside a transaction.
+-- project 2--
+--transactions queries-- 
 BEGIN;
-UPDATE animals SET species = 'unspecified';
-
--- Verify that changes were made.
-SELECT * FROM animals;
-
--- Roll back the changes.
+update animals  set species='unspecified';
 ROLLBACK;
-
--- Verify that changes were rolled back.
-SELECT * FROM animals;
-
-
--- Inside a transaction:
-BEGIN;
-
--- Update the species column to 'digimon' for all animals that have a name ending in 'mon'.
-UPDATE animals SET species = 'digimon' WHERE name LIKE '%mon';
-
--- Update the species column to 'pokemon' for all animals that don't have species already set.
-UPDATE animals SET species = 'pokemon' WHERE species IS NULL;
-
--- Commit the transaction.
-COMMIT;
-
--- Verify that change was made and persists after commit.
-SELECT * FROM animals;
-
-
--- Inside a transaction:
-BEGIN;
-
--- Delete all records in the animals table.
-DELETE FROM animals;
-
--- Roll back the transaction.
-ROLLBACK;
-
--- Verify if all records in the animals table still exists.
-SELECT * FROM animals;
+Begin;
+ update animals set species='digimon' where name like '%mon';
+ update animals set species= 'pokemon' where species is null; 
+commit;
+begin;
+     delete from animals;
+rollback;
+begin;
+  delete from animals where date_of_birth > '2022-01-01';
+  savepoint animal_save_one;
+  update animals set weight_kg =weight_kg * -1;
+  Rollback to savepoint animal_save_one;
+  update animals set weight_kg =weight_kg * -1 where weight_kg <0;
+commit;
+-- aggregation queries--
+select  count(*) number_of_animals from animals;
+select  count(*) never_escape_animals from animals where escape_attempts=0;
+select avg(weight_kg) from animals;
+select neutered as neutered_animal ,
+sum(escape_attempts) as total_escape_attempt 
+from animals group by neutered order by total_escape_attempt  desc ;
+select species,MIN(weight_kg) as min_weight_kg, max(weight_kg) as max_weight_kg from animals  group by species;
+select species, avg(escape_attempts) from animals 
+where date_of_birth between '1990-01-01' and '2000-01-01' 
+group by species;
 
 
--- Inside a transaction:
-BEGIN;
+---project three ----
+select  * from animals 
+inner join owners on animals.owner_id=owners.id
+inner join species on animals.species_id=species.id
+where owners.full_name ='Melody Pond';
 
--- Delete all animals born after Jan 1st, 2022.
-DELETE FROM animals WHERE date_of_birth > '2022-01-01';
-
--- Create a savepoint for the transaction.
-SAVEPOINT savepoint;
-
--- Update all animals' weight to be their weight multiplied by -1.
-UPDATE animals SET weight_kg = weight_kg * -1;
-
--- Rollback to the savepoint.
-ROLLBACK TO savepoint;
-
--- Update all animals' weights that are negative to be their weight multiplied by -1.
-UPDATE animals SET weight_kg = weight_kg * -1 WHERE weight_kg < 0;
-
--- Commit transaction.
-COMMIT;
+select  *  from animals 
+inner join owners on animals.owner_id=owners.id
+inner join species on animals.species_id=species.id
+where species.name ='Pokemon';
 
 
--- Queries that answer the following questions:
+select  * from animals 
+RIGHT join owners on animals.owner_id=owners.id;
 
--- How many animals are there?
-SELECT COUNT(*) FROM animals;
+select species.name as species_name, count(animals.name) as number_of_animals from animals 
+inner join species on animals.species_id=species.id
+group by species.name;
 
--- How many animals have never tried to escape?
-SELECT COUNT(*) FROM animals WHERE escape_attempts = 0;
+select  *  from animals 
+inner join owners on animals.owner_id=owners.id
+inner join species on animals.species_id=species.id
+where owners.full_name ='Jennifer Orwell' and species.name='Digimon';
 
--- What is the average weight of animals?
-SELECT AVG(weight_kg) FROM animals;
+select  * from animals 
+inner join owners on animals.owner_id=owners.id
+where owners.full_name ='Dean Winchester'and animals.escape_attempts=0;
 
--- Who escapes the most, neutered or not neutered animals?
-SELECT neutered, MAX(escape_attempts) FROM animals GROUP BY neutered;
-
--- What is the minimum and maximum weight of each type of animal?
-SELECT species, MIN(weight_kg), MAX(weight_kg) FROM animals GROUP BY species;
-
--- What is the average number of escape attempts per animal type of those born between 1990 and 2000?
-SELECT species, AVG(escape_attempts) FROM animals 
-WHERE date_of_birth BETWEEN '1990-01-01' AND '2000-12-31' GROUP BY species;
+select owners.full_name as owners_full_name, count(animals.name) as number_of_animals from animals 
+full join owners on animals.owner_id=owners.id
+group by owners.full_name
+order by number_of_animals desc;
