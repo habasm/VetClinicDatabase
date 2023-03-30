@@ -22,7 +22,7 @@ CREATE TABLE owners
 );
 CREATE TABLE species
 (
-    id SERIAL primary key,
+    id VARCHAR(255) primary key,
     name text
 );
 
