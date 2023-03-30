@@ -52,8 +52,14 @@ After you're finished please remove all the comments and instructions!
 
 > demonstrated the use of PostgreSQL commands for tasks such as creating a database and table, inserting data into the table, and executing various queries with different parameters.
 
-- sample screenshot for running sqls
-  <img src="screenshot/1.png">
+- Commit transactions
+  <img src="screenshot/1c.png">
+- roll back
+  <img src="screenshot/1c.png">
+- Save point with commit
+  <img src="screenshot/1c.png">
+- Answering with quries
+  <img src="screenshot/1c.png">
 
 ## 🛠 Built With <a name="built-with"></a>
 
