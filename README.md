@@ -145,6 +145,12 @@ To run the project, execute the following command:
 - Twitter: [@habasm](https://twitter.com/habasm)
 - LinkedIn: [HABASM](https://www.linkedin.com/in/habasm/)
 
+👤 **Kalkidan Daniel**
+
+- GitHub: [@kal2944](https://github.com/kal2944)
+- Twitter: [@Kalkida01088197](https://twitter.com/Kalkida01088197)
+- LinkedIn: [Kalkidan Daniel](https://www.linkedin.com/in/kalkidan-daniel-b2a204238/)
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- FUTURE FEATURES -->
