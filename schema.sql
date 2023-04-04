@@ -1,55 +1,86 @@
 /* Database schema to keep the structure of entire database. */
---project one---
-CREATE TABLE animals
-(
-    id integer primary key NOT NULL,
-    name text ,
-    date_of_birth date,
-    escape_attempts integer,
-    neutered boolean,
-    weight_kg decimal
+
+CREATE TABLE animals ( 
+    id              INT GENERATED ALWAYS AS IDENTITY,
+    name            VARCHAR(250),
+    date_of_birth   DATE, 
+    escape_attempts INT,
+    neutered        BOOLEAN, 
+    weight_kg       DECIMAL,
+    PRIMARY KEY(id) 
 );
 
--- project two--
-Alter table animals add column species text;
+ALTER TABLE animals 
+ADD species varchar(255);
 
----project three---
-CREATE TABLE owners
-(
-    id SERIAL  primary key,
-    full_name text ,
-    age  integer
-);
-CREATE TABLE species
-(
-    id SERIAL primary key,
-    name text
+-- Multiple tables
+
+CREATE TABLE owners (
+  id INT GENERATED ALWAYS AS IDENTITY,
+  full_name VARCHAR(255),
+  age  INT,
+  PRIMARY KEY (id)
 );
 
-create sequence animal_id_seq;
-alter table animals alter column id set default nextval('animal_id_seq');
-ALTER TABLE animals drop column species;
-ALTER TABLE animals ADD COLUMN species_id INTEGER REFERENCES species(id);
-ALTER TABLE animals ADD COLUMN owner_id INTEGER REFERENCES owners(id);
-
--- project four--
-CREATE TABLE vets
-(
-    id VARCHAR(255)  primary key not null,
-    name text ,
-    age  integer,
-	date_of_graduation date
+CREATE TABLE species (
+  id INT GENERATED ALWAYS AS IDENTITY,
+  name VARCHAR(255),
+  PRIMARY KEY (id)
 );
 
-CREATE TABLE specializations(
-   id SERIAL PRIMARY KEY, 
-  species_id int  references species(id) ,
-  vets_id int  references vets(id)
+ALTER TABLE animals
+DROP COLUMN species;
+
+ALTER TABLE animals 
+ADD COLUMN species_id INT;
+
+ALTER TABLE animals
+ADD CONSTRAINT fk_species
+FOREIGN KEY (species_id)
+REFERENCES species(id);
+
+ALTER TABLE animals 
+ADD COLUMN owner_id INT;
+
+ALTER TABLE animals
+ADD CONSTRAINT fk_owner
+FOREIGN KEY(owner_id)
+REFERENCES owners(id);
+
+-- many-to-many
+
+CREATE TABLE vets (
+  id INT GENERATED ALWAYS AS IDENTITY,
+  name VARCHAR(250),
+  age INT,
+  date_of_graduation DATE,
+  PRIMARY KEY (id)
 );
+
+CREATE TABLE specializations (
+  species_id int,
+  vets_id int,
+  CONSTRAINT fk_species FOREIGN KEY(species_id) REFERENCES species(id),
+  CONSTRAINT fk_vets FOREIGN KEY(vets_id) REFERENCES vets(id)
+);
+
+ALTER TABLE specializations 
+ADD CONSTRAINT PK_specializations 
+PRIMARY KEY (species_id ,vets_id);
+
 
 CREATE TABLE visits (
-     id SERIAL PRIMARY KEY,
-     animals_id INTEGER REFERENCES animals(id),
-     vets_id INTEGER REFERENCES vets(id),
-    date_of_visit date
+  animal_id INT,
+  vets_id INT,
+  visit_date DATE,
+  CONSTRAINT fk_animal FOREIGN KEY(animal_id)REFERENCES animals(id),
+  CONSTRAINT fk_vets FOREIGN KEY(vets_id)REFERENCES vets(id),
+  CONSTRAINT PK_visits PRIMARY KEY (animal_id ,vets_id)
 );
+
+ALTER TABLE visits
+DROP CONSTRAINT PK_visits;
+
+ALTER TABLE visits 
+ADD CONSTRAINT PK_visits 
+PRIMARY KEY (animal_id, vets_id, visit_date);

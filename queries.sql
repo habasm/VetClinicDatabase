@@ -1,137 +1,185 @@
 /*Queries that provide answers to the questions from all projects.*/
--- project 1--
-select * from animals where  name Like '%mon';
-select name from animals where date_of_birth  between  '2016-01-01' and '2019-01-01';
-select name from animals where neutered=true and  escape_attempts <3
-select date_of_birth from animals where name in('Agumon', 'Pikachu')
-select name, escape_attempts from animals where weight_kg >10.5
-select * from animals where neutered=true
-select * from animals where name !='Gabumon';
-select * from animals where weight_kg >= 10.4 and weight_kg <=17.3;
 
--- project 2--
---transactions queries-- 
-BEGIN;
-update animals  set species='unspecified';
+SELECT * FROM animals WHERE name LIKE '%mon';
+SELECT * FROM animals WHERE date_of_birth BETWEEN '2016-01-01' AND '2019-12-31';
+SELECT * FROM animals WHERE neutered = 'true' AND escape_attempts < 3;
+SELECT date_of_birth  FROM animals WHERE name IN ('Agumon', 'Pikachu');
+SELECT name, escape_attempts FROM animals WHERE weight_kg > 10.5;
+SELECT * FROM animals WHERE neutered = 'true';
+SELECT * FROM animals WHERE name != 'Gabumon';
+SELECT * FROM animals WHERE weight_kg >= 10.4 AND weight_kg <= 17.3;
+
+-- 1st transaction
+BEGIN TRANSACTION;
+UPDATE animals SET species = 'unspecified';
+SELECT * FROM animals;
 ROLLBACK;
-Begin;
- update animals set species='digimon' where name like '%mon';
- update animals set species= 'pokemon' where species is null; 
-commit;
-begin;
-     delete from animals;
-rollback;
-begin;
-  delete from animals where date_of_birth > '2022-01-01';
-  savepoint animal_save_one;
-  update animals set weight_kg =weight_kg * -1;
-  Rollback to savepoint animal_save_one;
-  update animals set weight_kg =weight_kg * -1 where weight_kg <0;
-commit;
--- aggregation queries--
-select  count(*) number_of_animals from animals;
-select  count(*) never_escape_animals from animals where escape_attempts=0;
-select avg(weight_kg) from animals;
-select neutered as neutered_animal ,
-sum(escape_attempts) as total_escape_attempt 
-from animals group by neutered order by total_escape_attempt  desc ;
-select species,MIN(weight_kg) as min_weight_kg, max(weight_kg) as max_weight_kg from animals  group by species;
-select species, avg(escape_attempts) from animals 
-where date_of_birth between '1990-01-01' and '2000-01-01' 
-group by species;
+SELECT * FROM animals;
+
+/*2nd transaction */
+
+BEGIN TRANSACTION;
+UPDATE animals
+SET species = 'digimon'
+WHERE name LIKE '%mon';
+
+UPDATE animals
+SET species = 'pokemon'
+WHERE species IS NULL OR species = '';
+
+SELECT * from animals;
+COMMIT;
+
+/*3rd transaction */
+
+BEGIN;
+DELETE FROM animals;
+ROLLBACK;
+SELECT * from animals;
+
+/*4th transaction */
+
+DELETE FROM animals
+WHERE date_of_birth > '2022-01-01';
+SAVEPOINT first_delete;
+
+UPDATE animals
+SET weight_kg = weight_kg * -1;
+
+ROLLBACK TO first_delete;
+
+UPDATE animals
+SET weight_kg = weight_kg * -1
+WHERE weight_kg < 0;
+COMMIT;
+
+/* Aggregate Functions */
+SELECT COUNT(*) FROM animals;
+SELECT COUNT(*) FROM animals
+WHERE escape_attempts = 0;
+
+SELECT AVG(weight_kg) FROM animals;
+
+SELECT neutered, SUM(escape_attempts)
+FROM animals
+GROUP BY neutered;
+
+SELECT species, MIN(weight_kg),MAX(weight_kg)
+FROM animals
+GROUP BY species;
+
+SELECT species, AVG(escape_attempts)
+FROM animals
+WHERE date_of_birth BETWEEN '1990-01-01' AND '2000-12-31'
+GROUP BY species;
 
 
----project three ----
-select  * from animals 
-inner join owners on animals.owner_id=owners.id
-inner join species on animals.species_id=species.id
-where owners.full_name ='Melody Pond';
+-- Multiple tables querys
 
-select  *  from animals 
-inner join owners on animals.owner_id=owners.id
-inner join species on animals.species_id=species.id
-where species.name ='Pokemon';
+SELECT owner_id, full_name AS "OWNER NAME" , animals.name AS "ANIMALS NAME"
+   FROM animals
+   INNER JOIN owners
+   ON  animals.owner_id = owners.id
+   WHERE owners.full_name = 'Melody Pond';
 
+    SELECT species.name AS "Animal Species", animals.name AS "ANIMALS NAME"
+    FROM animals
+    JOIN species
+    ON animals.species_id = species.id
+    WHERE species.id = 1;
 
-select  * from animals 
-RIGHT join owners on animals.owner_id=owners.id;
+SELECT  full_name AS "OWNER NAME" , animals.name AS "ANIMALS NAME"
+   FROM owners
+   LEFT JOIN  animals
+   ON  owners.id =  animals.owner_id ;
 
-select species.name as species_name, count(animals.name) as number_of_animals from animals 
-inner join species on animals.species_id=species.id
-group by species.name;
+SELECT species.name AS "SPECIES NAME",  COUNT(animals.name) AS "SPECIES COUNT" 
+    FROM species
+    JOIN animals
+    on species.id = animals.species_id 
+    GROUP By species.name;
+ 
+SELECT full_name AS "OWNER NAME" , animals.name AS "ANIMALS NAME",species.name AS "Animal Species"
+   FROM animals
+   INNER JOIN owners ON  animals.owner_id = owners.id
+   INNER JOIN species ON  animals.species_id = species.id
+   WHERE owners.id = 2 and species.name = 'Digimon'; 
 
-select  *  from animals 
-inner join owners on animals.owner_id=owners.id
-inner join species on animals.species_id=species.id
-where owners.full_name ='Jennifer Orwell' and species.name='Digimon';
+ SELECT full_name AS "OWNER NAME" , animals.name AS "ANIMALS NAME",species.name AS "Animal Species"
+   FROM animals
+   INNER JOIN owners ON  animals.owner_id = owners.id
+   INNER JOIN species ON  animals.species_id = species.id
+   WHERE owners.id = 5 and animals.escape_attempts = 0; 
 
-select  * from animals 
-inner join owners on animals.owner_id=owners.id
-where owners.full_name ='Dean Winchester'and animals.escape_attempts=0;
+   SELECT full_name AS "OWNER NAME",  COUNT(animals.name) AS "ANIMAL COUNT" 
+    FROM owners
+    JOIN animals
+    on owners.id = animals.owner_id 
+    GROUP By full_name
+    ORDER BY COUNT(animals.name) DESC LIMIT 1;
 
-select owners.full_name as owners_full_name, count(animals.name) as number_of_animals from animals 
-full join owners on animals.owner_id=owners.id
-group by owners.full_name
-order by number_of_animals desc;
+ --  querys for many-to-many
 
----project four---
+   SELECT animals.id, animals.name AS Last_Seen, visit_date
+   FROM animals JOIN visits 
+   ON animals.id = visits.animal_id
+   WHERE vets_id = (SELECT id from vets WHERE name = 'William Tatcher')
+   ORDER BY visit_date DESC LIMIT 1;
 
-select  *  from animals 
-inner join visits on visits.animals_id=animals.id
-inner join vets on vets.id=visits.vets_id
-where  vets.name ='William Tatcher'
-order by date_of_visit desc
-limit 1
+    SELECT vets.name AS "VET NAME" , COUNT(animals.name) AS "animals count"
+    from animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON visits.vets_id = vets.id
+    WHERE vets_id = (SELECT id from vets WHERE name = 'Stephanie Mendez')
+    GROUP BY vets.name;
 
+SELECT vets.id, vets.name AS "Vet name", species.name AS "SpecializATION"
+   FROM vets
+   LEFT JOIN specializations ON specializations.vets_id = vets.id
+   LEFT JOIN species on specializations.species_id = species.id;    
+       
 
-select DISTINCT   *  from animals 
-inner join visits on visits.animals_id=animals.id
-inner join vets on vets.id=visits.vets_id
-where  vets.name ='Stephanie Mendez';
+   SELECT vets.name AS "VET NAME" , animals.name AS "Animal Seen", visit_date
+    from animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON visits.vets_id = vets.id
+    WHERE vets_id = (SELECT id from vets WHERE name = 'Stephanie Mendez') AND visit_date BETWEEN '2020-04-01' and '2020-08-30';
 
+ 
+  SELECT animals.name , COUNT (*) as "Visit count"
+   from animals
+   JOIN visits ON animals.id = visits.animal_id
+   GROUP BY  animals.name
+   ORDER BY COUNT (*) DESC LIMIT 1;
 
-select  *  from vets 
-left join specializations on specializations.vets_id=vets.id
-left join species on species.id =specializations.species_id;
+  SELECT animals.name AS "FIRST ANIMAL SEEN", visit_date
+    from animals
+    JOIN visits
+    ON animals.id = visits.animal_id
+    WHERE vets_id = (SELECT id from vets WHERE name = 'Maisy Smith')
+    ORDER BY visit_date ASC LIMIT 1;
 
-select  *  from animals 
-inner join visits on visits.animals_id=animals.id
-inner join vets on vets.id=visits.vets_id
-where  vets.name ='Stephanie Mendez' and date_of_visit between '2020-04-01' and '2020-04-30'
+SELECT animals.name AS "RECENT ANIMAL SEEN", vets.name AS "VET NAME", visit_date AS "Visit Date"
+    FROM animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON visits.vets_id = vets.id
+    ORDER BY visit_date DESC LIMIT 1;
 
+SELECT COUNT(*)
+    FROM visits
+    JOIN animals ON visits.animals_id = animals.id
+    JOIN vets ON visits.vets_id = vets.id
+    WHERE animals.species_id NOT IN (
+    SELECT species_id FROM specializations
+	  WHERE specializations.vets_id = vets.id
+);
 
-select  animals.name as animal_name, count( animals.name) as number_of_visited from animals 
-inner join visits on visits.animals_id=animals.id
-inner join vets on vets.id=visits.vets_id
-group by animals.name 
-order by  number_of_visited desc
-
-select  *  from animals 
-inner join visits on visits.animals_id=animals.id
-inner join vets on vets.id=visits.vets_id
-where  vets.name ='Maisy Smith'
-order by date_of_visit asc
-limit 1
-
-select  *  from animals 
-inner join visits on visits.animals_id=animals.id
-inner join vets on vets.id=visits.vets_id
-order by date_of_visit desc
-limit 1
-
-
-
-select  count(visits.id) as number_of_vists  from animals
-inner join visits on visits.animals_id =animals.id
-inner join vets on vets.id=visits.vets_id
-left join specializations on specializations.vets_id=vets.id
-where specializations.species_id is  null;
-
-
-select species.name, count(species.name)  as number_vists_by_Maisy_Smith from animals
-inner join visits on visits.animals_id =animals.id
-inner join species on species.id =animals.species_id 
-inner join vets on vets.id=visits.vets_id
-left join specializations on specializations.vets_id=vets.id
-where vets.name ='Maisy Smith'
-group by species.name;
+    SELECT species.name AS "Species Name" 
+    FROM visits
+    JOIN animals ON visits.animal_id = animals.id 
+    JOIN vets ON  visits.vets_id = vets.id
+    JOIN species ON animals.species_id = species.id 
+    WHERE visits.vets_id = (SELECT id FROM vets WHERE name = 'Maisy Smith') 
+    GROUP BY species.name 
+    ORDER BY count(animals.name) DESC LIMIT 1;       
+    
